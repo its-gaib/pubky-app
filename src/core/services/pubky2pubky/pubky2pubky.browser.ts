@@ -24,7 +24,7 @@ import type {
 const CLIENT_ID = 'chat.pubky2pubky';
 const REQUIRED_CAPABILITY = '/pub/pubky2pubky/:rw';
 const TRUSTED_IROH_RELAYS = ['https://euc1-1.relay.n0.iroh.link/'] as const;
-const V4_ALPN = 'pubky2pubky/iroh/v4';
+const V1_ALPN = 'pubky2pubky/iroh/v1';
 const REQUEST_ID = /^[A-Za-z0-9_-]{1,128}$/;
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const GRANT_SECRET = /^[A-Za-z0-9_-]{43}$/;
@@ -209,7 +209,7 @@ function defaultConfig(): BrowserTransportConfig {
 }
 
 /**
- * Epoch-isolated adapter around the pinned pubky2pubky v4 browser artifact.
+ * Epoch-isolated adapter around the pinned pubky2pubky v1 browser artifact.
  *
  * Browser package events are treated as untrusted. The app issuer is attached
  * only after the package has restored or completed a Ring Grant for the exact
@@ -568,8 +568,8 @@ export class BrowserPubky2PubkyTransport implements Pubky2PubkyTransport {
         event.e2e !== true ||
         event.irohQuicEncrypted !== true ||
         event.pubkyIdentityVerified !== true ||
-        event.protocolVersion !== 4 ||
-        event.alpn !== V4_ALPN
+        event.protocolVersion !== 1 ||
+        event.alpn !== V1_ALPN
       ) {
         throw new BrowserTransportBoundaryError();
       }
@@ -586,7 +586,7 @@ export class BrowserPubky2PubkyTransport implements Pubky2PubkyTransport {
         ringGrantIssuer: issuer,
         peerId: event.peerId,
         route: 'relay',
-        protocolVersion: 4,
+        protocolVersion: 1,
         irohQuicEncrypted: true,
         pubkyIdentityVerified: true,
       });
@@ -681,7 +681,7 @@ export class BrowserPubky2PubkyTransport implements Pubky2PubkyTransport {
     entry.confirmedIdentity = null;
     this.clearPeerState(entry);
     entry.unsubscribe();
-    this.emit({ type: 'unavailable', epoch: entry.session.epoch, reason: 'v4-browser-package-unavailable' });
+    this.emit({ type: 'unavailable', epoch: entry.session.epoch, reason: 'browser-package-unavailable' });
     if (entry.browser) void entry.browser.destroy().catch(() => undefined);
   }
 

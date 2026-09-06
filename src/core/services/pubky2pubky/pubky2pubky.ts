@@ -71,7 +71,7 @@ export class Pubky2PubkyService {
 
     void this.transport.initialize(session).catch(() => {
       if (!this.isActiveSession(session.epoch, session.accountId)) return;
-      listener({ type: 'unavailable', epoch: session.epoch, reason: 'v4-browser-package-unavailable' });
+      listener({ type: 'unavailable', epoch: session.epoch, reason: 'browser-package-unavailable' });
     });
     return session.epoch;
   }
@@ -117,7 +117,7 @@ export class Pubky2PubkyService {
     const active = this.active;
     const session = this.requireActive(epoch, 'sendPubky2PubkyMessage');
     if (!active?.verifiedPeers.has(peerId)) {
-      throw Err.auth(AuthErrorCode.FORBIDDEN, 'The peer has not completed v4 identity verification.', {
+      throw Err.auth(AuthErrorCode.FORBIDDEN, 'The peer has not completed v1 identity verification.', {
         service: ErrorService.Local,
         operation: 'sendPubky2PubkyMessage',
       });

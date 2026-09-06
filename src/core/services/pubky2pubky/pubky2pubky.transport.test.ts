@@ -76,14 +76,14 @@ describe('validatePubky2PubkyAdapterOutput', () => {
     ).toBeNull();
   });
 
-  it('accepts the complete post-accept v4 identity and Iroh encryption event', () => {
+  it('accepts the complete post-accept v1 identity and Iroh encryption event', () => {
     const event = validatePubky2PubkyAdapterOutput(
       {
         type: 'peer-verified',
         ...authorized,
         peerId: PEER,
         route: 'relay',
-        protocolVersion: 4,
+        protocolVersion: 1,
         irohQuicEncrypted: true,
         pubkyIdentityVerified: true,
       },
@@ -101,7 +101,7 @@ describe('validatePubky2PubkyAdapterOutput', () => {
       ...authorized,
       peerId: PEER,
       route: 'relay',
-      protocolVersion: 4,
+      protocolVersion: 1,
       irohQuicEncrypted: true,
       pubkyIdentityVerified: true,
     };

@@ -30,7 +30,7 @@ interface AuthorizedEvent {
 }
 
 export type Pubky2PubkyTransportEvent =
-  | { type: 'unavailable'; epoch: string; reason: 'v4-browser-package-unavailable' }
+  | { type: 'unavailable'; epoch: string; reason: 'browser-package-unavailable' }
   | { type: 'auth-required'; epoch: string; authorizationUrl: string }
   | { type: 'identity'; epoch: string; identity: Pubky; restored: boolean }
   | (AuthorizedEvent & { type: 'online-state'; state: 'offline' | 'publishing' | 'online' })
@@ -40,7 +40,7 @@ export type Pubky2PubkyTransportEvent =
       type: 'peer-verified';
       peerId: Pubky;
       route: Pubky2PubkyRoute;
-      protocolVersion: 4;
+      protocolVersion: 1;
       irohQuicEncrypted: true;
       pubkyIdentityVerified: true;
     })
@@ -52,7 +52,7 @@ export type Pubky2PubkyTransportListener = (event: Pubky2PubkyTransportEvent) =>
 export type Pubky2PubkyAdapterListener = (output: unknown) => void;
 
 /**
- * Client-only boundary for the immutable pubky2pubky v4 browser artifact.
+ * Client-only boundary for the immutable pubky2pubky v1 browser artifact.
  *
  * Every call is scoped to one account epoch. An adapter MUST derive
  * `ringGrantIssuer` from the signature-verified Ring grant for that epoch; it
@@ -62,7 +62,7 @@ export type Pubky2PubkyAdapterListener = (output: unknown) => void;
  *
  * The recipient may receive Iroh QUIC and verify the signed inbound Hello
  * offline before consent. An adapter MUST emit `peer-verified` only after
- * manual acceptance and the v4 mutual live Pubky-authority checks. Only then
+ * manual acceptance and the v1 mutual live Pubky-authority checks. Only then
  * may application messages flow. Message bytes must never be placed in
  * homeserver resources, URLs, logs, or analytics.
  */
@@ -174,7 +174,7 @@ export function validatePubky2PubkyAdapterOutput(
       !hasExactKeys(output, ['type', 'epoch', 'reason']) ||
       !isBoundedIdentifier(output.epoch, CHAT_TRANSPORT_EPOCH_MAX_LENGTH) ||
       output.epoch !== session.epoch ||
-      output.reason !== 'v4-browser-package-unavailable'
+      output.reason !== 'browser-package-unavailable'
     ) {
       return null;
     }
@@ -282,7 +282,7 @@ export function validatePubky2PubkyAdapterOutput(
       !isPubkyIdentifier(output.peerId) ||
       output.peerId === session.accountId ||
       (output.route !== 'direct' && output.route !== 'relay') ||
-      output.protocolVersion !== 4 ||
+      output.protocolVersion !== 1 ||
       output.irohQuicEncrypted !== true ||
       output.pubkyIdentityVerified !== true
     ) {
@@ -294,7 +294,7 @@ export function validatePubky2PubkyAdapterOutput(
       ringGrantIssuer: output.ringGrantIssuer as Pubky,
       peerId: output.peerId,
       route: output.route,
-      protocolVersion: 4,
+      protocolVersion: 1,
       irohQuicEncrypted: true,
       pubkyIdentityVerified: true,
     };

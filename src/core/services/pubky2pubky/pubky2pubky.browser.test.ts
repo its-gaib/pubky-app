@@ -98,8 +98,8 @@ function verifiedEvent(overrides: Partial<Extract<BrowserTransportEvent, { type:
     e2e: true as const,
     irohQuicEncrypted: true as const,
     pubkyIdentityVerified: true as const,
-    protocolVersion: 4 as const,
-    alpn: 'pubky2pubky/iroh/v4' as const,
+    protocolVersion: 1 as const,
+    alpn: 'pubky2pubky/iroh/v1' as const,
     ...overrides,
   };
 }
@@ -138,7 +138,7 @@ describe('BrowserPubky2PubkyTransport', () => {
     ]);
   });
 
-  it('requires every v4 verification invariant before messages or sends can cross the boundary', async () => {
+  it('requires every v1 verification invariant before messages or sends can cross the boundary', async () => {
     const browser = new FakeBrowserTransport();
     restore(browser);
     const adapter = adapterWith(browser);
@@ -154,7 +154,7 @@ describe('BrowserPubky2PubkyTransport', () => {
 
     const verified = outputs.find((event) => event.type === 'peer-verified');
     const message = outputs.find((event) => event.type === 'message');
-    expect(verified).toMatchObject({ ringGrantIssuer: ACCOUNT, peerId: PEER, route: 'relay', protocolVersion: 4 });
+    expect(verified).toMatchObject({ ringGrantIssuer: ACCOUNT, peerId: PEER, route: 'relay', protocolVersion: 1 });
     expect(message).toMatchObject({ ringGrantIssuer: ACCOUNT, peerId: PEER });
     expect(message?.messageId).toMatch(/^[0-9a-f-]{36}$/);
     expect(browser.sendMessage).toHaveBeenCalledOnce();
@@ -174,7 +174,7 @@ describe('BrowserPubky2PubkyTransport', () => {
     expect(outputs.at(-1)).toEqual({
       type: 'unavailable',
       epoch: 'epoch_unsolicited',
-      reason: 'v4-browser-package-unavailable',
+      reason: 'browser-package-unavailable',
     });
     expect(browser.destroy).toHaveBeenCalledOnce();
   });
@@ -221,7 +221,7 @@ describe('BrowserPubky2PubkyTransport', () => {
     expect(wrongOutputs.at(-1)).toEqual({
       type: 'unavailable',
       epoch: 'epoch_inbound_wrong',
-      reason: 'v4-browser-package-unavailable',
+      reason: 'browser-package-unavailable',
     });
   });
 
@@ -287,7 +287,7 @@ describe('BrowserPubky2PubkyTransport', () => {
 
     await expect(identityAdapter.initialize(session('epoch_wrong'))).rejects.toThrow('rejected invalid or stale');
     expect(identityOutputs).toEqual([
-      { type: 'unavailable', epoch: 'epoch_wrong', reason: 'v4-browser-package-unavailable' },
+      { type: 'unavailable', epoch: 'epoch_wrong', reason: 'browser-package-unavailable' },
     ]);
     expect(identityOutputs.some((event) => 'ringGrantIssuer' in event)).toBe(false);
 
@@ -302,7 +302,7 @@ describe('BrowserPubky2PubkyTransport', () => {
     expect(verificationOutputs.at(-1)).toEqual({
       type: 'unavailable',
       epoch: 'epoch_forged',
-      reason: 'v4-browser-package-unavailable',
+      reason: 'browser-package-unavailable',
     });
     expect(verificationOutputs.some((event) => event.type === 'peer-verified')).toBe(false);
     expect(forgedBrowser.destroy).toHaveBeenCalledOnce();

@@ -53,7 +53,7 @@ function verifyPeer(transport: FakeTransport, epoch: string, accountId = ACCOUNT
     ringGrantIssuer: accountId,
     peerId: PEER,
     route: 'relay',
-    protocolVersion: 4,
+    protocolVersion: 1,
     irohQuicEncrypted: true,
     pubkyIdentityVerified: true,
   });
@@ -148,7 +148,7 @@ describe('Pubky2PubkyService epoch and identity boundary', () => {
     });
     expect(events.some((event) => event.type === 'message')).toBe(false);
     await expect(service.sendMessage(epoch, PEER, new TextEncoder().encode('blocked'))).rejects.toThrow(
-      'not completed v4 identity verification',
+      'not completed v1 identity verification',
     );
 
     verifyPeer(transport, epoch);
