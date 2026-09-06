@@ -9,7 +9,7 @@ import { RUNTIME_CONFIG_WINDOW_KEY } from '@/libs/runtime-config/runtime-config'
 import { NETWORK_RUNTIME_DEFAULTS } from '@/libs/runtime-config/runtime-config.schema';
 import { asOpaque } from '@/test-utils/type-assertions';
 import { getSentryInitBase } from './sentry';
-import { shouldDropAppErrorFromSentry } from './sentry.utils';
+import { dropSensitiveAuthRelayReplayEvent, shouldDropAppErrorFromSentry } from './sentry.utils';
 
 const TEST_PUBKY = 'ufibwbmed6jeq9k4p583go95wofakh9fwpp4k734trq79pd9u1uy';
 
@@ -339,6 +339,67 @@ describe('Sentry PII scrubbing', () => {
     expect(event.exception?.values?.[0]?.value).toBe('Homeserver failed for [redacted: pubky identifier]');
     expect(event.breadcrumbs?.[0]?.message).toContain('[redacted: email]');
     expect(event.breadcrumbs?.[0]?.message).toContain('[redacted: pubky identifier]');
+  });
+
+  it('redacts a complete Pubky Ring grant authorization URL, including its relay secret', () => {
+    const authorizationUrl =
+      `pubkyauth://signin_grant?caps=%2Fpub%2Fpubky2pubky%2F%3Arw&relay=https%3A%2F%2Fhttprelay.example%2Finbox` +
+      `&secret=${'a'.repeat(43)}&cid=chat.pubky2pubky&cpk=${TEST_PUBKY}`;
+    const event = runBeforeSend(
+      asOpaque<Sentry.ErrorEvent>({
+        message: `Could not open ${authorizationUrl}`,
+        breadcrumbs: [{ data: { to: authorizationUrl } }],
+      }),
+    );
+
+    expect(event.message).toBe('Could not open [redacted: pubky authorization]');
+    expect(event.breadcrumbs?.[0]?.data?.to).toBe('[redacted: pubky authorization]');
+    expect(JSON.stringify(event)).not.toContain('a'.repeat(43));
+    expect(JSON.stringify(event)).not.toContain(TEST_PUBKY);
+  });
+
+  it('redacts a secret-derived Pubky auth relay channel from fetch breadcrumbs and traces', () => {
+    const channel = 'b'.repeat(43);
+    const relayUrl = `https://httprelay.staging.pubky.app/inbox/${channel}/await`;
+    const beforeBreadcrumb = getSentryInitBase().beforeBreadcrumb;
+    expect(beforeBreadcrumb).toBeTypeOf('function');
+
+    const breadcrumb = beforeBreadcrumb!({ category: 'fetch', data: { url: relayUrl } });
+    expect(breadcrumb?.data?.url).toBe('[redacted: pubky auth relay channel]');
+
+    const transaction = runBeforeSendTransaction(
+      asOpaque<TransactionEvent>({
+        type: 'transaction',
+        transaction: 'auth poll',
+        request: { url: relayUrl },
+      }),
+    );
+    expect(transaction.request?.url).toBe('[redacted: pubky auth relay channel]');
+    expect(JSON.stringify({ breadcrumb, transaction })).not.toContain(channel);
+
+    const replayFetch = {
+      type: 5,
+      timestamp: Date.now(),
+      data: {
+        tag: 'performanceSpan',
+        payload: {
+          op: 'resource.fetch',
+          description: relayUrl,
+          startTimestamp: 1,
+          endTimestamp: 2,
+        },
+      },
+    };
+    expect(dropSensitiveAuthRelayReplayEvent(replayFetch)).toBeNull();
+    expect(
+      dropSensitiveAuthRelayReplayEvent({
+        ...replayFetch,
+        data: {
+          ...replayFetch.data,
+          payload: { ...replayFetch.data.payload, description: 'https://example.com/public.json' },
+        },
+      }),
+    ).not.toBeNull();
   });
 
   it('redacts app-controlled error context while preserving safe operational fields', () => {

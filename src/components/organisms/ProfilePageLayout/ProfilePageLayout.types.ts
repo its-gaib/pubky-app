@@ -17,6 +17,8 @@ export interface ProfilePageLayoutActions {
   followLoadingAction: FollowAction | null;
   /** Whether the current user is following this profile */
   isFollowing?: boolean;
+  /** Opens an authenticated, browser-local conversation with this profile. */
+  onChat?: () => void;
 }
 
 export interface ProfilePageLayoutProps {

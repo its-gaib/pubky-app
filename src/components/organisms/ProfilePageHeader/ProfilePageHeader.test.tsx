@@ -133,6 +133,7 @@ const mockOtherUserProps: ProfilePageHeaderProps = {
     onCopyLink: vi.fn(),
     onAvatarClick: vi.fn(),
     onFollowToggle: vi.fn(),
+    onChat: vi.fn(),
     isFollowLoading: false,
     isFollowing: false,
     followLoadingAction: null,
@@ -372,6 +373,14 @@ describe('ProfilePageHeader - Mobile Snapshots', () => {
 });
 
 describe('ProfilePageHeader - Other User Profile', () => {
+  it('shows Chat and calls the profile chat action', () => {
+    const onChat = vi.fn();
+    render(<ProfilePageHeader {...mockOtherUserProps} actions={{ ...mockOtherUserProps.actions, onChat }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Chat' }));
+    expect(onChat).toHaveBeenCalledTimes(1);
+  });
+
   it('shows Follow button when viewing other user and not following', () => {
     render(<ProfilePageHeader {...mockOtherUserProps} />);
 

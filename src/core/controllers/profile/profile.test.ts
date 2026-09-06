@@ -1,5 +1,6 @@
 import { UserResult } from 'pubky-app-specs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { CHAT_INITIAL_PEER_SESSION_KEY } from '@/config/chat';
 import type { Pubky } from '@/models/models.types';
 import { asOpaque } from '@/test-utils/type-assertions';
 
@@ -9,6 +10,10 @@ const mockProfileApplication = {
   downloadData: vi.fn(),
   commitUpdateStatus: vi.fn(),
   commitUpdate: vi.fn(),
+};
+
+const mockChatApplication = {
+  resetTransport: vi.fn(),
 };
 
 const mockUserNormalizer = {
@@ -47,6 +52,9 @@ const mockIdentity = {
 vi.mock('@/application/profile/profile', () => ({
   ProfileApplication: mockProfileApplication,
 }));
+vi.mock('@/application/chat/chat', () => ({
+  ChatApplication: mockChatApplication,
+}));
 vi.mock('@/pipes/user/user.normalizer', () => ({
   UserNormalizer: mockUserNormalizer,
 }));
@@ -78,6 +86,7 @@ describe('ProfileController', () => {
     mockProfileApplication.downloadData.mockReset();
     mockProfileApplication.commitUpdateStatus.mockReset();
     mockProfileApplication.commitUpdate.mockReset();
+    mockChatApplication.resetTransport.mockReset().mockResolvedValue(undefined);
     mockUserNormalizer.to.mockReset();
     mockIdentity.generateSecrets.mockReset();
     mockIdentity.z32FromSecret.mockReset();
@@ -287,6 +296,7 @@ describe('ProfileController', () => {
       const setProgress = vi.fn();
 
       mockProfileApplication.commitDelete.mockResolvedValue(undefined);
+      sessionStorage.setItem(CHAT_INITIAL_PEER_SESSION_KEY, testPubky);
 
       await ProfileController.commitDelete({ pubky: testPubky, setProgress });
 
@@ -295,6 +305,8 @@ describe('ProfileController', () => {
         setProgress,
       });
       expect(mockClearExperienceCompleted).toHaveBeenCalledWith(testPubky);
+      expect(mockChatApplication.resetTransport).toHaveBeenCalledOnce();
+      expect(sessionStorage.getItem(CHAT_INITIAL_PEER_SESSION_KEY)).toBeNull();
     });
 
     it('propagates errors from ProfileApplication.commitDelete', async () => {
@@ -304,6 +316,7 @@ describe('ProfileController', () => {
       mockProfileApplication.commitDelete.mockRejectedValue(error);
 
       await expect(ProfileController.commitDelete({ pubky: testPubky, setProgress })).rejects.toThrow('delete failed');
+      expect(mockChatApplication.resetTransport).toHaveBeenCalledOnce();
       expect(mockClearExperienceCompleted).not.toHaveBeenCalled();
     });
   });

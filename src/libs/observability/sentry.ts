@@ -5,6 +5,7 @@ import { AppError } from '@/libs/error/error';
 import {
   sanitizeForSentry,
   scrubSensitiveData,
+  scrubSentryBreadcrumb,
   scrubSpanJson,
   scrubTransactionEvent,
   shouldDropAppErrorFromSentry,
@@ -113,6 +114,7 @@ export function getSentryInitBase(): Sentry.NodeOptions & Sentry.BrowserOptions 
       INLINE_IMAGE_UPLOAD_REJECTION_NAME,
     ],
     beforeSend: scrubSensitiveData,
+    beforeBreadcrumb: scrubSentryBreadcrumb,
     beforeSendTransaction: scrubTransactionEvent,
     beforeSendSpan: scrubSpanJson,
   };

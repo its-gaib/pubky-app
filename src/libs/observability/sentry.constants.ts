@@ -3,10 +3,15 @@ const Z32_ALPHABET = 'ybndrfg8ejkmcpqxot1uwisza345h769';
 export const PUBKY_REDACTED = '[redacted: pubky identifier]';
 export const EMAIL_REDACTED = '[redacted: email]';
 export const PHONE_REDACTED = '[redacted: phone]';
+export const PUBKY_AUTH_RELAY_CHANNEL_REDACTED = '[redacted: pubky auth relay channel]';
+export const PUBKYAUTH_REDACTED = '[redacted: pubky authorization]';
 export const SENSITIVE_VALUE_REDACTED = '[redacted: sensitive field]';
 
 export const RAW_PUBKY_PATTERN = new RegExp(`\\b[${Z32_ALPHABET}]{52}\\b`, 'gi');
 export const PUBKY_URI_PATTERN = /\bpubky:\/\/[^\s"'<>]+/gi;
+export const PUBKY_AUTH_RELAY_CHANNEL_PATTERN =
+  /\bhttps?:\/\/[^\s"'<>]*?\/inbox\/[A-Za-z0-9_-]{43}(?:\/(?:ack|await))?(?:[?#][^\s"'<>]*)?/gi;
+export const PUBKYAUTH_URI_PATTERN = /\bpubkyauth:\/\/[^\s"'<>]+/gi;
 export const PUBKY_HTTP_HOST_PATTERN = /\bhttps?:\/\/_pubky\.[^\s"'<>]+/gi;
 export const PUBKY_COMPACT_URI_PATTERN = new RegExp(`\\bpubky[${Z32_ALPHABET}]{52}(?:\\/[^\\s"'<>]*)?`, 'gi');
 export const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;

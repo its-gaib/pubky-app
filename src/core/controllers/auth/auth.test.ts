@@ -2,9 +2,11 @@ import { LastReadResult } from 'pubky-app-specs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthApplication } from '@/application/auth/auth';
 import { BootstrapApplication } from '@/application/bootstrap/bootstrap';
+import { ChatApplication } from '@/application/chat/chat';
 import { SettingsApplication } from '@/application/settings/settings';
 import { postStreamQueue } from '@/application/stream/posts/muting/post-stream-queue';
 import { UserApplication } from '@/application/user/user';
+import { CHAT_INITIAL_PEER_SESSION_KEY } from '@/config/chat';
 import { getModerationId } from '@/config/moderation';
 import { MUTE_SYNC_CURSOR_STORAGE_PREFIX } from '@/config/mute-sync';
 import { NotificationCoordinator } from '@/coordinators/notifications/notifications';
@@ -1655,6 +1657,7 @@ describe('AuthController', () => {
       const resetStreamSpy = vi.spyOn(StreamCoordinator, 'resetInstance');
       const resetNotifCoordSpy = vi.spyOn(NotificationCoordinator, 'resetInstance');
       const postStreamQueueClearSpy = vi.spyOn(postStreamQueue, 'clear');
+      const resetChatTransportSpy = vi.spyOn(ChatApplication, 'resetTransport').mockResolvedValue(undefined);
 
       const signInStore = createSignInStore();
       const localFilesStore = createLocalFilesStore();
@@ -1680,6 +1683,7 @@ describe('AuthController', () => {
 
       const muteSyncCursorKey = `${MUTE_SYNC_CURSOR_STORAGE_PREFIX}test-pubky`;
       sessionStorage.setItem(muteSyncCursorKey, 'cursor-value');
+      sessionStorage.setItem(CHAT_INITIAL_PEER_SESSION_KEY, TEST_PUBKY);
 
       await AuthController.logout();
 
@@ -1699,6 +1703,7 @@ describe('AuthController', () => {
       expect(resetStreamSpy).toHaveBeenCalledOnce();
       expect(resetNotifCoordSpy).toHaveBeenCalledOnce();
       expect(postStreamQueueClearSpy).toHaveBeenCalledOnce();
+      expect(resetChatTransportSpy).toHaveBeenCalledOnce();
 
       // Zustand stores
       expect(storeMocks.resetOnboardingStore).toHaveBeenCalledOnce();
@@ -1722,6 +1727,7 @@ describe('AuthController', () => {
       expect(storeMocks.resetMigrationStore).toHaveBeenCalled();
 
       expect(sessionStorage.getItem(muteSyncCursorKey)).toBeNull();
+      expect(sessionStorage.getItem(CHAT_INITIAL_PEER_SESSION_KEY)).toBeNull();
     });
 
     it('should log warning and clear local state even when homeserver logout fails', async () => {

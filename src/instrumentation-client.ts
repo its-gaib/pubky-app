@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { getSentryInitBase, shouldEnableSentry } from '@/libs/observability/sentry';
+import { dropSensitiveAuthRelayReplayEvent } from '@/libs/observability/sentry.utils';
 import {
   getSentryReplaysOnErrorSampleRate,
   getSentryReplaysSessionSampleRate,
@@ -27,7 +28,9 @@ if (shouldEnableSentry()) {
         maskAllText: true,
         blockAllMedia: true,
         maskAllInputs: true,
+        maskAttributes: ['title', 'placeholder', 'aria-label', 'href'],
         networkCaptureBodies: false,
+        beforeAddRecordingEvent: dropSensitiveAuthRelayReplayEvent,
       }),
     ],
   });

@@ -1,0 +1,13 @@
+.git/
+.env*
+.next/
+.screenshots/
+.vitest-attachments/
+coverage/
+cypress/
+node_modules/
+*.pem
+npm-debug.log*
+**/*.snap
+**/*.test.*
+**/*.stories.*

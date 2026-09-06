@@ -76,6 +76,7 @@ vi.mock('@/app/routes', async () => {
     ...actual,
     APP_ROUTES: {
       HOME: '/home',
+      CHAT: '/chat',
       SEARCH: '/search',
       HOT: '/hot',
       COLLECTIONS: '/collections',
@@ -168,6 +169,7 @@ describe('MobileFooter', () => {
     expect(document.querySelector('.lucide-house')).toBeInTheDocument();
     expect(document.querySelector('.lucide-search')).toBeInTheDocument();
     expect(document.querySelector('.lucide-flame')).toBeInTheDocument();
+    expect(document.querySelector('.lucide-message-circle')).toBeInTheDocument();
     expect(document.querySelector('.lucide-library')).toBeInTheDocument();
     expect(document.querySelector('.lucide-settings')).toBeInTheDocument();
     expect(screen.getByTestId('avatar-with-fallback')).toBeInTheDocument();
@@ -186,6 +188,7 @@ describe('MobileFooter', () => {
       { href: '/home', iconClass: '.lucide-house', label: 'Home' },
       { href: '/search', iconClass: '.lucide-search', label: 'Search' },
       { href: '/hot', iconClass: '.lucide-flame', label: 'Hot' },
+      { href: '/chat', iconClass: '.lucide-message-circle', label: 'Chat' },
       { href: '/collections', iconClass: '.lucide-library', label: 'Collections' },
       { href: '/settings/account', iconClass: '.lucide-settings', label: 'Settings' },
     ];
@@ -211,6 +214,7 @@ describe('MobileFooter', () => {
 
     expect(document.querySelector('.lucide-search')).toBeInTheDocument();
     expect(document.querySelector('.lucide-house')).toBeInTheDocument();
+    expect(document.querySelector('.lucide-message-circle')).toBeInTheDocument();
     expect(document.querySelector('.lucide-library')).toBeInTheDocument();
     expect(document.querySelector('.lucide-settings')).toBeInTheDocument();
   });
@@ -256,7 +260,14 @@ describe('MobileFooter', () => {
   it('applies correct icon classes', () => {
     render(<MobileFooter />);
 
-    const iconClasses = ['.lucide-house', '.lucide-search', '.lucide-flame', '.lucide-library', '.lucide-settings'];
+    const iconClasses = [
+      '.lucide-house',
+      '.lucide-search',
+      '.lucide-flame',
+      '.lucide-message-circle',
+      '.lucide-library',
+      '.lucide-settings',
+    ];
     iconClasses.forEach((selector) => {
       const iconElement = document.querySelector(selector) as HTMLElement | null;
       expect(iconElement).toHaveClass('h-6', 'w-6');
@@ -491,6 +502,7 @@ describe('MobileFooter', () => {
       '/home',
       '/search',
       '/hot',
+      '/chat',
       '/collections',
       '/settings/account',
     ]);

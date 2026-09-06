@@ -19,6 +19,7 @@ export enum AUTH_ROUTES {
 
 export enum APP_ROUTES {
   HOME = '/home',
+  CHAT = '/chat',
   FEED = '/feed',
   SEARCH = '/search',
   HOT = '/hot',
@@ -105,6 +106,7 @@ export const ALLOWED_ROUTES = [
   ONBOARDING_ROUTES.PROFILE,
   ONBOARDING_ROUTES.TAGS,
   APP_ROUTES.HOME,
+  APP_ROUTES.CHAT,
   APP_ROUTES.FEED,
   APP_ROUTES.SEARCH,
   APP_ROUTES.HOT,

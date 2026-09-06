@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame, Home, Library, Search, Settings, UserRoundPlus } from 'lucide-react';
+import { Flame, Home, Library, MessageCircle, Search, Settings, UserRoundPlus } from 'lucide-react';
 import { APP_ROUTES, isNavItemActive, SETTINGS_ROUTES } from '@/app/routes';
 import { Badge } from '@/atoms/Badge/Badge';
 import { Button } from '@/atoms/Button/Button';
@@ -68,6 +68,11 @@ export function MobileFooter({ className }: MobileFooterProps) {
       label: 'Hot',
     },
     {
+      href: APP_ROUTES.CHAT,
+      icon: MessageCircle,
+      label: 'Chat',
+    },
+    {
       href: APP_ROUTES.COLLECTIONS,
       activePrefix: APP_ROUTES.COLLECTIONS,
       icon: Library,
@@ -80,7 +85,7 @@ export function MobileFooter({ className }: MobileFooterProps) {
       label: 'Settings',
     },
   ];
-  const protectedNavHrefs = new Set<string>([SETTINGS_ROUTES.ACCOUNT]);
+  const protectedNavHrefs = new Set<string>([APP_ROUTES.CHAT, SETTINGS_ROUTES.ACCOUNT]);
   // Hide footer for guests only on non-explore routes. Core explore and dynamic public
   // routes (/home, /post/..., /profile/...) use the public explore footer.
   if (!isAuthenticated && !isPublicExploreRoute) {

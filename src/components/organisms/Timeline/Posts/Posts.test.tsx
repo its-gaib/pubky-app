@@ -109,6 +109,7 @@ describe('TimelinePosts', () => {
 
     // Mock router
     mockUseRouter.mockReturnValue({
+      bfcacheId: 'test-bfcache',
       push: mockPush,
       back: vi.fn(),
       forward: vi.fn(),
@@ -630,6 +631,7 @@ describe('TimelinePosts - Snapshots', () => {
 
     // Mock router
     mockUseRouter.mockReturnValue({
+      bfcacheId: 'test-bfcache',
       push: mockPush,
       back: vi.fn(),
       forward: vi.fn(),

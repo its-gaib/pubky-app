@@ -8,6 +8,7 @@ import {
   Link,
   Loader2,
   LogOut,
+  MessageCircle,
   Pencil,
   UserMinus,
   UserRoundPlus,
@@ -59,6 +60,7 @@ export function ProfilePageHeader({ profile, actions, isOwnProfile = true, userI
     isFollowLoading,
     followLoadingAction,
     isFollowing,
+    onChat,
   } = actions;
 
   // Subscribe to TTL coordinator based on viewport visibility
@@ -262,6 +264,18 @@ export function ProfilePageHeader({ profile, actions, isOwnProfile = true, userI
           {/* Other user profile actions */}
           {!isOwnProfile && (
             <>
+              {onChat && (
+                <Button
+                  data-cy="profile-chat-btn"
+                  variant="secondary"
+                  size="sm"
+                  className={ACTION_BUTTON_GRID_CELL}
+                  onClick={onChat}
+                >
+                  <MessageCircle className="size-4" />
+                  {'Chat'}
+                </Button>
+              )}
               {/* Follow/Unfollow button */}
               {onFollowToggle && (
                 <Button

@@ -163,6 +163,7 @@ describe('Header Components', () => {
   const mockPush = vi.fn();
   const mockSetShowSignInDialog = vi.fn();
   const mockRouter = {
+    bfcacheId: 'test-bfcache',
     push: mockPush,
     back: vi.fn(),
     forward: vi.fn(),
@@ -465,12 +466,14 @@ describe('Header Components', () => {
 
       const homeLink = document.querySelector('.lucide-house')?.closest('a');
       const hotLink = document.querySelector('.lucide-flame')?.closest('a');
+      const chatLink = document.querySelector('.lucide-message-circle')?.closest('a');
       const collectionsLink = document.querySelector('.lucide-library')?.closest('a');
       const settingsLink = document.querySelector('.lucide-settings')?.closest('a');
       const profileLink = screen.getByText('TU').closest('a');
 
       expect(homeLink).toHaveAttribute('href', '/home');
       expect(hotLink).toHaveAttribute('href', '/hot');
+      expect(chatLink).toHaveAttribute('href', '/chat');
       expect(collectionsLink).toHaveAttribute('href', '/collections');
       expect(settingsLink).toHaveAttribute('href', '/settings/account');
       expect(profileLink).toHaveAttribute('href', '/profile');
@@ -536,13 +539,16 @@ describe('Header Components', () => {
       expect(links.map((link) => link.getAttribute('href'))).toEqual(['/home', '/hot', '/collections']);
       expect(screen.getByTestId('search-input')).toBeInTheDocument();
 
-      // All four nav icons are shown.
+      // All five nav icons are shown.
       expect(document.querySelector('.lucide-house')).toBeInTheDocument();
       expect(document.querySelector('.lucide-flame')).toBeInTheDocument();
+      expect(document.querySelector('.lucide-message-circle')).toBeInTheDocument();
       expect(document.querySelector('.lucide-library')).toBeInTheDocument();
       expect(document.querySelector('.lucide-settings')).toBeInTheDocument();
 
-      // Settings require an account, so it renders as an auth-gated button, not a link.
+      // Chat and Settings require an account, so they render as auth-gated buttons, not links.
+      expect(document.querySelector('.lucide-message-circle')?.closest('a')).toBeNull();
+      expect(document.querySelector('[data-cy="header-chat-btn"]')?.tagName).toBe('BUTTON');
       expect(document.querySelector('.lucide-settings')?.closest('a')).toBeNull();
       expect(document.querySelector('[data-cy="header-settings-btn"]')?.tagName).toBe('BUTTON');
       expect(document.querySelector('.lucide-library')?.closest('a')).toHaveAttribute('href', '/collections');
@@ -637,6 +643,7 @@ describe('Header Components', () => {
 describe('Header Components - Snapshots', () => {
   const mockPush = vi.fn();
   const mockRouter = {
+    bfcacheId: 'test-bfcache',
     push: mockPush,
     back: vi.fn(),
     forward: vi.fn(),

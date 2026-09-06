@@ -5,6 +5,7 @@ import { useIsFollowing } from '@/hooks/useIsFollowing/useIsFollowing';
 import { useProfileHeader } from '@/hooks/useProfileHeader/useProfileHeader';
 import { useProfileNavigation } from '@/hooks/useProfileNavigation/useProfileNavigation';
 import { useRequireAuth } from '@/hooks/useRequireAuth/useRequireAuth';
+import { useStartChat } from '@/hooks/useStartChat/useStartChat';
 import { isPubkyIdentifier } from '@/libs/utils/utils';
 import { ProfileUserNotFoundDiscoveryView } from '@/organisms/ProfileUserNotFoundDiscoveryView/ProfileUserNotFoundDiscoveryView';
 import { useProfileContext } from '@/providers/ProfileProvider/ProfileProvider';
@@ -65,6 +66,7 @@ export function ProfilePageContainer({ children }: ProfilePageContainerProps) {
 
   // Business logic: Handle follow/unfollow for other users' profiles (with auth check)
   const { requireAuth } = useRequireAuth();
+  const { startChat } = useStartChat();
   const { toggleFollow, isLoading: isFollowLoading, loadingAction: followLoadingAction } = useFollowUser();
   const { isFollowing } = useIsFollowing(pubky ?? '');
 
@@ -81,6 +83,7 @@ export function ProfilePageContainer({ children }: ProfilePageContainerProps) {
     isFollowLoading,
     followLoadingAction,
     isFollowing,
+    ...(!isOwnProfile && pubky ? { onChat: () => startChat(pubky) } : {}),
   };
 
   const showUserNotFoundDiscovery =

@@ -1,3 +1,4 @@
+import { ChatApplication } from '@/application/chat/chat';
 import { ProfileApplication } from '@/application/profile/profile';
 import type {
   TCommitSetDetailsParams,
@@ -5,6 +6,7 @@ import type {
   TDeleteAccountInput,
   TDownloadDataInput,
 } from '@/controllers/profile/profile.types';
+import { clearChatInitialPeerSessionStorage } from '@/libs/chat/chat-session-storage';
 import { Identity } from '@/libs/identity/identity';
 import type { Pubky } from '@/models/models.types';
 import { UserNormalizer } from '@/pipes/user/user.normalizer';
@@ -88,6 +90,8 @@ export class ProfileController {
    * @param setProgress - The function to set the progress
    */
   static async commitDelete({ pubky, setProgress }: TDeleteAccountInput) {
+    clearChatInitialPeerSessionStorage();
+    await ChatApplication.resetTransport();
     await ProfileApplication.commitDelete({ pubky, setProgress });
     useOnboardingStore.getState().clearExperienceCompleted(pubky);
   }

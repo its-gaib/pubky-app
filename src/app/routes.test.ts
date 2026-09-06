@@ -205,6 +205,12 @@ function isRouteAccessible(
 }
 
 describe('route access matrix', () => {
+  it('allows chat only for authenticated users', () => {
+    expect(isRouteAccessible(APP_ROUTES.CHAT, AUTHENTICATED_ROUTES.allowedRoutes, false)).toBe(true);
+    expect(isRouteAccessible(APP_ROUTES.CHAT, UNAUTHENTICATED_ROUTES.allowedRoutes, true)).toBe(false);
+    expect(isDynamicPublicRoute(APP_ROUTES.CHAT)).toBe(false);
+  });
+
   it('allows authenticated users to reach collections bookmarks via prefix matching', () => {
     expect(isRouteAccessible('/collections/bookmarks', AUTHENTICATED_ROUTES.allowedRoutes, false)).toBe(true);
   });

@@ -88,6 +88,10 @@ vi.mock('@/hooks/useRequireAuth/useRequireAuth', () => ({
   })),
 }));
 
+vi.mock('@/hooks/useStartChat/useStartChat', () => ({
+  useStartChat: vi.fn(() => ({ startChat: vi.fn() })),
+}));
+
 vi.mock('@/hooks/useFollowUser/useFollowUser', () => ({
   useFollowUser: vi.fn(() => ({
     toggleFollow: vi.fn(),

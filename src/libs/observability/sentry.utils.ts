@@ -10,11 +10,15 @@ import {
   NEXUS_POST_TAGS_PATH_PATTERN,
   PHONE_PATTERN,
   PHONE_REDACTED,
+  PUBKY_AUTH_RELAY_CHANNEL_PATTERN,
+  PUBKY_AUTH_RELAY_CHANNEL_REDACTED,
   PUBKY_COMPACT_URI_PATTERN,
   PUBKY_HTTP_HOST_PATTERN,
   PUBKY_IDENTIFIER_KEYS,
   PUBKY_REDACTED,
   PUBKY_URI_PATTERN,
+  PUBKYAUTH_REDACTED,
+  PUBKYAUTH_URI_PATTERN,
   RAW_PUBKY_PATTERN,
   SENSITIVE_CONTEXT_KEYS,
   SENSITIVE_VALUE_REDACTED,
@@ -31,12 +35,43 @@ function isSensitiveContextKey(key: string): boolean {
 
 function scrubSensitiveString(value: string): string {
   return value
+    .replace(PUBKYAUTH_URI_PATTERN, PUBKYAUTH_REDACTED)
+    .replace(PUBKY_AUTH_RELAY_CHANNEL_PATTERN, PUBKY_AUTH_RELAY_CHANNEL_REDACTED)
     .replace(PUBKY_URI_PATTERN, PUBKY_REDACTED)
     .replace(PUBKY_HTTP_HOST_PATTERN, PUBKY_REDACTED)
     .replace(PUBKY_COMPACT_URI_PATTERN, PUBKY_REDACTED)
     .replace(RAW_PUBKY_PATTERN, PUBKY_REDACTED)
     .replace(EMAIL_PATTERN, EMAIL_REDACTED)
     .replace(PHONE_PATTERN, PHONE_REDACTED);
+}
+
+/** Drop Replay's custom fetch/XHR frame when its URL is a secret-derived Pubky auth inbox. */
+export function dropSensitiveAuthRelayReplayEvent<T>(event: T): T | null {
+  if (typeof event !== 'object' || event === null) return event;
+  const data = (event as Record<string, unknown>).data;
+  if (typeof data !== 'object' || data === null || (data as Record<string, unknown>).tag !== 'performanceSpan') {
+    return event;
+  }
+  const payload = (data as Record<string, unknown>).payload;
+  if (typeof payload !== 'object' || payload === null) return event;
+  const frame = payload as Record<string, unknown>;
+  if (
+    (frame.op === 'resource.fetch' || frame.op === 'resource.xhr') &&
+    typeof frame.description === 'string' &&
+    scrubSensitiveString(frame.description).includes(PUBKY_AUTH_RELAY_CHANNEL_REDACTED)
+  ) {
+    return null;
+  }
+  return event;
+}
+
+/** Scrub SDK-generated navigation/fetch breadcrumbs before either errors or Replay can retain them. */
+export function scrubSentryBreadcrumb(breadcrumb: Sentry.Breadcrumb): Sentry.Breadcrumb {
+  return {
+    ...breadcrumb,
+    message: breadcrumb.message ? scrubSensitiveString(breadcrumb.message) : breadcrumb.message,
+    data: breadcrumb.data ? (sanitizeForSentry(breadcrumb.data) as Sentry.Breadcrumb['data']) : breadcrumb.data,
+  };
 }
 
 function getEndpointPath(endpoint: unknown): string | null {
@@ -185,13 +220,7 @@ export function scrubSensitiveData(event: Sentry.ErrorEvent): Sentry.ErrorEvent 
   }
 
   if (event.breadcrumbs) {
-    event.breadcrumbs = event.breadcrumbs.map((crumb) => {
-      return {
-        ...crumb,
-        message: crumb.message ? scrubSensitiveString(crumb.message) : crumb.message,
-        data: crumb.data ? (sanitizeForSentry(crumb.data) as Sentry.Breadcrumb['data']) : crumb.data,
-      };
-    });
+    event.breadcrumbs = event.breadcrumbs.map(scrubSentryBreadcrumb);
   }
 
   if (event.contexts?.['error.context']) {
