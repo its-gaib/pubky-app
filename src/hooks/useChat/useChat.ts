@@ -25,8 +25,23 @@ export function useChat(): UseChatResult {
   const [verifiedPeerId, setVerifiedPeerId] = useState<Pubky | null>(null);
   const [verifiedRoute, setVerifiedRoute] = useState<Pubky2PubkyRoute | null>(null);
   const [transportEpoch, setTransportEpoch] = useState<string | null>(null);
-  const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null);
+  const [authorization, setAuthorization] = useState<{
+    accountId: Pubky;
+    session: typeof session;
+    url: string;
+  } | null>(null);
+  const authorizationRef = useRef<typeof authorization>(null);
+  const [authorizationCopy, setAuthorizationCopy] = useState<{
+    request: typeof authorization;
+    status: UseChatResult['authorizationCopyStatus'];
+  } | null>(null);
   const verifiedPeerRef = useRef<Pubky | null>(null);
+  const activeAuthorization =
+    authorization?.accountId === currentAccountId &&
+    authorization?.session === session &&
+    transportState === 'authorizing'
+      ? authorization
+      : null;
 
   const conversations = useLiveQuery(
     async () => (currentAccountId ? ChatController.getConversations() : []),
@@ -66,7 +81,9 @@ export function useChat(): UseChatResult {
 
   useEffect(() => {
     setTransportEpoch(null);
-    setAuthorizationUrl(null);
+    setAuthorization(null);
+    authorizationRef.current = null;
+    setAuthorizationCopy(null);
     setPendingRequests([]);
     setTransportState('unavailable');
     setVerifiedPeerId(null);
@@ -74,19 +91,26 @@ export function useChat(): UseChatResult {
     setVerifiedRoute(null);
     if (!currentAccountId || !session) return clearChatInitialPeerSessionStorage;
 
+    let active = true;
     let epoch: string;
     try {
       epoch = ChatController.startTransport((event) => {
+        if (!active) return;
         if (event.type === 'unavailable') {
           setTransportState('unavailable');
-          setAuthorizationUrl(null);
+          setAuthorization(null);
+          authorizationRef.current = null;
+          setAuthorizationCopy(null);
           setVerifiedPeerId(null);
           verifiedPeerRef.current = null;
           setVerifiedRoute(null);
           return;
         }
         if (event.type === 'auth-required') {
-          setAuthorizationUrl(event.authorizationUrl);
+          const request = { accountId: currentAccountId, session, url: event.authorizationUrl };
+          authorizationRef.current = request;
+          setAuthorization(request);
+          setAuthorizationCopy(null);
           setTransportState('authorizing');
           setVerifiedPeerId(null);
           verifiedPeerRef.current = null;
@@ -94,7 +118,9 @@ export function useChat(): UseChatResult {
           return;
         }
         if (event.type === 'identity') {
-          setAuthorizationUrl(null);
+          setAuthorization(null);
+          authorizationRef.current = null;
+          setAuthorizationCopy(null);
           setTransportState('offline');
           return;
         }
@@ -134,11 +160,17 @@ export function useChat(): UseChatResult {
       });
       setTransportEpoch(epoch);
     } catch {
+      active = false;
+      setAuthorization(null);
+      authorizationRef.current = null;
+      setAuthorizationCopy(null);
       setTransportState('unavailable');
       return clearChatInitialPeerSessionStorage;
     }
 
     return () => {
+      active = false;
+      authorizationRef.current = null;
       clearChatInitialPeerSessionStorage();
       void ChatController.stopTransport(epoch);
     };
@@ -160,8 +192,26 @@ export function useChat(): UseChatResult {
   };
 
   const authorizeInRing = (): void => {
-    if (!authorizationUrl) return;
-    window.location.href = authorizationUrl;
+    if (!activeAuthorization || authorizationRef.current !== activeAuthorization) return;
+    window.location.href = activeAuthorization.url;
+  };
+
+  const copyAuthorizationLink = async (): Promise<void> => {
+    if (!activeAuthorization || authorizationRef.current !== activeAuthorization) return;
+    const request = activeAuthorization;
+    setAuthorizationCopy({ request, status: 'copying' });
+    let status: UseChatResult['authorizationCopyStatus'] = 'failed';
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(request.url);
+        status = 'copied';
+      }
+    } catch {
+      // Clipboard access may be denied. Never log the approval URI or browser error.
+    }
+    if (authorizationRef.current === request) {
+      setAuthorizationCopy({ request, status });
+    }
   };
 
   const connectSelectedPeer = async (): Promise<void> => {
@@ -224,7 +274,11 @@ export function useChat(): UseChatResult {
     selectedPeerId,
     pendingRequests,
     transportState,
-    authorizationRequired: authorizationUrl !== null,
+    authorizationRequired: activeAuthorization !== null,
+    authorizationUrl: activeAuthorization?.url ?? null,
+    authorizationCopyStatus:
+      activeAuthorization && authorizationCopy?.request === activeAuthorization ? authorizationCopy.status : 'idle',
+    copyAuthorizationLink,
     authorizeInRing,
     verifiedRoute: verifiedPeerId === selectedPeerId ? verifiedRoute : null,
     selectPeer,

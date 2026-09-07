@@ -18,8 +18,11 @@ export interface UseChatResult {
   selectedPeerId: Pubky | null;
   pendingRequests: Pubky2PubkyInboundRequest[];
   transportState: ChatTransportState;
-  /** The validated URL remains private to the hook and is never rendered into a DOM attribute. */
   authorizationRequired: boolean;
+  /** Validated pending Ring URI, for local QR encoding only; never render its text or place it in DOM attributes. */
+  authorizationUrl: string | null;
+  authorizationCopyStatus: 'idle' | 'copying' | 'copied' | 'failed';
+  copyAuthorizationLink: () => Promise<void>;
   authorizeInRing: () => void;
   verifiedRoute: Pubky2PubkyRoute | null;
   selectPeer: (peerId: Pubky) => Promise<void>;

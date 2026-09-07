@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Check, Loader2, MessageCircle, Radio, Search, Send, ShieldCheck, Trash2, UserRoundPlus } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Controller } from 'react-hook-form';
 import { Button } from '@/atoms/Button/Button';
 import { Container } from '@/atoms/Container/Container';
@@ -63,11 +64,7 @@ export function ChatSpace() {
             <Typography as="h1" size="lg">
               Messages
             </Typography>
-            {chat.authorizationRequired ? (
-              <Button size="sm" variant="secondary" type="button" data-sentry-block onClick={chat.authorizeInRing}>
-                Authorize in Ring
-              </Button>
-            ) : (
+            {!chat.authorizationRequired && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -79,6 +76,55 @@ export function ChatSpace() {
               </Button>
             )}
           </Container>
+          {chat.authorizationUrl && (
+            <Container
+              overrideDefaults
+              className="flex min-w-0 flex-col gap-3 rounded-lg border border-border p-3"
+              aria-label="Approve chat in Pubky Ring"
+              data-sentry-block
+            >
+              <Typography as="h2" size="sm" className="font-semibold">
+                Approve chat in Pubky Ring
+              </Typography>
+              <Typography size="sm" className="text-muted-foreground">
+                Open Pubky Ring on your phone and scan this code. Approve with the same Pubky identity you used to sign
+                in here, then return to this tab.
+              </Typography>
+              <QRCodeSVG
+                value={chat.authorizationUrl}
+                size={240}
+                marginSize={4}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                className="mx-auto h-auto max-w-full shrink-0 bg-white"
+                role="img"
+                aria-label="Pubky Ring approval QR code"
+              />
+              <Typography size="xs" className="text-muted-foreground">
+                If Ring is installed on this device, open it below. If nothing happens, scan the code with your phone or
+                copy the approval link into Ring.
+              </Typography>
+              <Button size="sm" variant="secondary" type="button" onClick={chat.authorizeInRing}>
+                Open Ring on this device
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                disabled={chat.authorizationCopyStatus === 'copying'}
+                onClick={() => void chat.copyAuthorizationLink()}
+              >
+                Copy approval link
+              </Button>
+              <Typography size="xs" className="text-muted-foreground" role="status" aria-live="polite">
+                {chat.authorizationCopyStatus === 'copied'
+                  ? 'Approval link copied.'
+                  : chat.authorizationCopyStatus === 'failed'
+                    ? 'Could not copy the approval link. Scan the QR code instead.'
+                    : 'Waiting for approval in Ring…'}
+              </Typography>
+            </Container>
+          )}
           <Container overrideDefaults className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
